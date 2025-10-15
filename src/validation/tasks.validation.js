@@ -1,4 +1,4 @@
-import Joi from "../src/routes/node_modules/joi/lib";
+import Joi from "joi"
 
 export const taskValidation = Joi.object({
   title: Joi.string().min(3).max(100).required().messages({

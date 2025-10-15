@@ -1,8 +1,8 @@
 import express from "express";
-import boardController from "../../controllers/board.controller.js";
-import { authenticateToken } from "../../middleware/auth.js";
-import { validate } from "../../middleware/validation.js";
-import { boardValidation } from "../../validation/board.validation.js";
+import boardController from "../controllers/board.controller.js";
+import { authenticateToken } from "../middleware/auth.js";
+import { validate } from "../middleware/validation.js";
+import { boardValidation } from "../validation/board.validation.js";
 
 const router = express.Router();
 router.post("/", authenticateToken, validate(boardValidation), boardController.create);

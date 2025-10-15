@@ -1,4 +1,4 @@
-import Joi from "../src/routes/node_modules/joi/lib";
+import Joi from "joi"
 
 export const userValidation = Joi.object({
   username: Joi.string().min(3).max(50).required().messages({
