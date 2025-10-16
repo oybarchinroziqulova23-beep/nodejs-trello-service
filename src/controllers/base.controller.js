@@ -8,6 +8,16 @@ export default class createBaseController {
 
   async create(req, res) {
     try {
+
+      const { title } = req.body;
+      const existing = await pool.query(
+      `SELECT * FROM boards WHERE LOWER(title) = LOWER($1)`,[title]
+      );
+
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ message: "Bunday nomli board allaqachon mavjud!" });
+      }
+
       const fields = Object.keys(req.body);
       const values = Object.values(req.body);
 
@@ -18,11 +28,14 @@ export default class createBaseController {
         RETURNING *;
       `;
 
+
       const result = await pool.query(query, values);
       const user = result.rows[0];
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
-      // delete user.password;
+      if(this.tableName == "users"){
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+        delete user.password;
+      }
       res.status(201).json(user);
 
     } catch (err) {
@@ -108,21 +121,22 @@ export default class createBaseController {
   }
 
   async search(req, res) {
-    try {
-      const { q } = req.query;
-      if (!q) return res.status(400).json({ message: "Qidiruv so'zi kiritilmadi!" });
+    try{
+    const queryKeys = Object.keys(req.query);
+    const queryValues = Object.values(req.query);
 
-      const query = `
-        SELECT * FROM ${this.tableName}
-        WHERE CAST(id AS TEXT) LIKE $1
-        OR CAST(${this.tableName}.title AS TEXT) LIKE $1
-        OR CAST(${this.tableName}.description AS TEXT) LIKE $1
-        OR CAST(${this.tableName}.username AS TEXT) LIKE $1
-        OR CAST(${this.tableName}.email AS TEXT) LIKE $1;
-      `;
+    if (queryKeys.length === 0) {
+      return res.status(400).json({ message: "Hech qanday qidiruv parametri yuborilmadi" });
+    }
 
-      const result = await pool.query(query, [`%${q}%`]);
-      res.json(result.rows);
+    const conditions = queryKeys.map((key, i) => `${key} ILIKE $${i + 1}`);
+    const sql = `SELECT * FROM ${this.tableName} WHERE ${conditions.join(" AND ")}`;
+    const values = queryValues.map(v => `%${v}%`);
+
+    const result = await pool.query(sql, values);
+
+    res.json(result.rows);
+    
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
