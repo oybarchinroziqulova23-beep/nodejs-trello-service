@@ -1,5 +1,5 @@
-import { createBaseController } from "./base.controller.js";
+import  createBaseController  from "./base.controller.js";
 
-const boardController = createBaseController("boards");
+const boardController = new createBaseController("boards");
 
 export default boardController;

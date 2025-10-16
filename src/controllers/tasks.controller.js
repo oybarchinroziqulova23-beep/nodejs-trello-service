@@ -1,5 +1,5 @@
-import { createBaseController } from "./base.controller.js"
+import createBaseController from "./base.controller.js"
 
-const taskController = createBaseController("tasks")
+const taskController = new createBaseController("tasks")
 
 export default taskController

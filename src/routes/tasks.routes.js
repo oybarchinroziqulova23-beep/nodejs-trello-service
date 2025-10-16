@@ -1,15 +1,15 @@
 import express from "express";
-import taskController from "../controllers/tasks.controller.js";
-import { authenticateToken } from "../middleware/auth.js";
 import { validate } from "../middleware/validation.js";
 import { taskValidation } from "../validation/tasks.validation.js";
+import taskController from "../controllers/tasks.controller.js";
 
 const router = express.Router();
 
-router.post("/", authenticateToken, validate(taskValidation), taskController.create);
-router.get("/", authenticateToken, taskController.getAll);
-router.get("/:id", authenticateToken, taskController.getById);
-router.put("/:id", authenticateToken, validate(taskValidation), taskController.update);
-router.delete("/:id", authenticateToken, taskController.remove);
+router.post("/", validate(taskValidation), (req, res) => taskController.create(req, res));
+router.get("/", (req, res) => taskController.getAll(req, res));
+router.get("/search", (req, res) => taskController.search(req, res));
+router.get("/:id", (req, res) => taskController.getById(req, res));
+router.put("/:id", validate(taskValidation), (req, res) => taskController.update(req, res));
+router.delete("/:id", (req, res) => taskController.remove(req, res));
 
 export default router;
