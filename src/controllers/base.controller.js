@@ -1,11 +1,11 @@
 import pool from "../config/db.js";
+import bcrypt from "bcrypt";
 
 export default class createBaseController {
   constructor(tableName) {
     this.tableName = tableName;
   }
 
-  // 🔹 CREATE
   async create(req, res) {
     try {
       const fields = Object.keys(req.body);
@@ -19,13 +19,17 @@ export default class createBaseController {
       `;
 
       const result = await pool.query(query, values);
-      res.status(201).json(result.rows[0]);
+      const user = result.rows[0];
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+      // delete user.password;
+      res.status(201).json(user);
+
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   }
 
-  // 🔹 GET ALL
   async getAll(req, res) {
     try {
       const { limit, offset } = req.pagination || { limit: 10, offset: 0 };
@@ -44,7 +48,6 @@ export default class createBaseController {
     }
   }
 
-  // 🔹 GET BY ID
   async getById(req, res) {
     try {
       const { id } = req.params;
@@ -61,7 +64,6 @@ export default class createBaseController {
     }
   }
 
-  // 🔹 UPDATE
   async update(req, res) {
     try {
       const { id } = req.params;
@@ -80,13 +82,15 @@ export default class createBaseController {
       if (result.rows.length === 0)
         return res.status(404).json({ message: "Yangilash uchun ma'lumot topilmadi" });
 
-      res.json(result.rows[0]);
+      const user = result.rows[0];
+      delete user.password; 
+      res.status(201).json(user);
+
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   }
 
-  // 🔹 DELETE
   async remove(req, res) {
     try {
       const { id } = req.params;
@@ -103,13 +107,11 @@ export default class createBaseController {
     }
   }
 
-  // 🔹 SEARCH (yangi qo‘shilgan)
   async search(req, res) {
     try {
       const { q } = req.query;
-      if (!q) return res.status(400).json({ message: "Qidiruv so‘zi kiritilmadi!" });
+      if (!q) return res.status(400).json({ message: "Qidiruv so'zi kiritilmadi!" });
 
-      // qidiruv barcha text ustunlarda LIKE orqali amalga oshiriladi
       const query = `
         SELECT * FROM ${this.tableName}
         WHERE CAST(id AS TEXT) LIKE $1

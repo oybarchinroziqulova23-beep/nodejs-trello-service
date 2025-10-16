@@ -1,9 +1,15 @@
+-- Active: 1759322651824@@127.0.0.1@5432@exam
+DROP DATABASE exam WITH (FORCE);
 CREATE DATABASE exam;
+Create extension if not exists "pgcrypto";
 \c exam;
 
+DROP TABLE users;
+DROP TABLE tasks;
+DROP TABLE boards;
 
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
+    Id uuid primary key default gen_random_uuid(),
     username VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     password VARCHAR(200) NOT NULL,
@@ -13,10 +19,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS boards (
-    id SERIAL PRIMARY KEY,
+    Id uuid primary key default gen_random_uuid(),
     title VARCHAR(150) NOT NULL,
     description TEXT,
-    user_id INT NOT NULL,
+    user_id UUID REFERENCES users(Id) on DElete CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user FOREIGN KEY (user_id)
@@ -25,11 +31,12 @@ CREATE TABLE IF NOT EXISTS boards (
 );
 
 CREATE TABLE IF NOT EXISTS tasks (
-    id SERIAL PRIMARY KEY,
+    Id uuid primary key default gen_random_uuid(),
     title VARCHAR(200) NOT NULL,
     description TEXT,
     status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
-    board_id INT NOT NULL,
+    board_id  UUID REFERENCES boards(Id) on delete CASCADE,
+    user_id UUID REFERENCES users(Id) on delete CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_board FOREIGN KEY (board_id)
